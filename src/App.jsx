@@ -78,7 +78,6 @@ const App = () => {
           />
           <Route path="/signup" element={<Signup setUsers={setUsers} />} />
           <Route path="/our-story" element={<OurStory />} /> // ✅ Add OurStory
-          
           {/* Protected Routes (Require Login) */}
           <Route
             path="/user-details"
@@ -134,7 +133,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>
-      
+
       <Footer />
     </Router>
   );
