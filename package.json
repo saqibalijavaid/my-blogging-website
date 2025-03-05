@@ -4,15 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:css && vite",
-    "build": "npm run build:css && vite build",
-    "build:css": "npx @tailwindcss/cli -i ./src/index.css -o ./src/index.css",
+    "dev": "vite",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.0.9",
-    "@tailwindcss/vite": "^4.0.6",
+    "@tailwindcss/vite": "^4.0.9",
     "framer-motion": "^12.4.3",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
