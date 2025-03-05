@@ -37,8 +37,10 @@
 // export default OurStory;
 
 import React from "react";
+import { Link } from "react-router-dom";
 
 const OurStory = () => {
+  
   return (
     <div className="bg-gray-900 text-white min-h-screen">
       <div className="container mx-auto px-4 py-16 max-w-4xl">
@@ -100,12 +102,12 @@ const OurStory = () => {
               next, there's a place for you here.
             </p>
 
-            <a
-              href="/signup"
+            <Link
+              to="/signup"
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition duration-300"
             >
               Start your innovation journey
-            </a>
+            </Link>
           </div>
         </div>
       </div>

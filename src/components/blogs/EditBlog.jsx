@@ -246,26 +246,29 @@ const EditBlog = () => {
     localStorage.setItem('blogs', JSON.stringify(allBlogs));
     
     // Redirect to user blogs page
-    navigate('/user-blogs');
+    // navigate('/user-blogs');
   };
 
   if (loading) {
     return <div className="max-w-2xl mx-auto p-6 text-center">Loading...</div>;
   }
 
-  if (error === 'Blog not found') {
-    return (
-      <div className="max-w-2xl mx-auto p-6 text-center">
-        <h2 className="text-xl text-red-600 mb-4">Blog not found</h2>
-        <button 
-          onClick={() => navigate('/user-blogs')}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-        >
-          Back to My Blogs
-        </button>
-      </div>
-    );
-  }
+  // if (error === 'Blog not found') {
+  //   return (
+  //     <div className="max-w-2xl mx-auto p-6 text-center">
+  //       <h2 className="text-xl text-red-600 mb-4">Blog not found</h2>
+  //       <button 
+  //          onClick={() => {
+  //           console.log("edit blog Navigating to /my-blogs...");
+  //           navigate("/my-blogs");
+  //         }}
+  //         className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+  //       >
+  //         Back to My Blogs
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -348,13 +351,14 @@ const EditBlog = () => {
         <div className="flex space-x-4">
           <button 
             type="submit"
+            onClick={() => navigate('/blogs')}
             className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
           >
             Update Blog
           </button>
           <button 
             type="button"
-            onClick={() => navigate('/user-blogs')}
+            onClick={() => navigate('/blogs')}
             className="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
           >
             Cancel

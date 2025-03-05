@@ -72,7 +72,7 @@ const BlogCard = ({ blog }) => {
         <p className="text-gray-600 mb-4 line-clamp-3">{blog.description}</p>
         
         <Link 
-          to={`/blog/${blog.id}`} 
+          to={`/blogs/${blog.id}`} 
           className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
         >
           Read More

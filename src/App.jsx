@@ -71,7 +71,7 @@ const App = () => {
           {/* <Route path="/" element={<Home />} /> */}
           <Route path="/" element={<Home isLoggedIn={isLoggedIn} />} />
           <Route path="/blogs" element={<AllBlogs />} />
-          <Route path="/blog/:id" element={<BlogDetails />} />
+          <Route path="/blogs/:id" element={<BlogDetails />} />
           <Route
             path="/signin"
             element={<Signin handleLogin={handleLogin} />}
