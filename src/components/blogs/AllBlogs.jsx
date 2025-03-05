@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BlogCard from './BlogCard';
 import { defaultBlogs } from './DefaultBlogs';
 
+
 const AllBlogs = () => {
   const [allBlogs, setAllBlogs] = useState([]);
   const [filteredBlogs, setFilteredBlogs] = useState([]);
