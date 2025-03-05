@@ -133,7 +133,7 @@ const BlogDetails = () => {
 
       <div className="mt-8 flex justify-between">
         <button
-          onClick={() => navigate("/my-blogs")}
+          onClick={() => navigate("/blogs")}
           className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
         >
           Back to All Blogs
