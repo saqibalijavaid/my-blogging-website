@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npm run build:css && vite",
+    "build": "npm run build:css && vite build",
+    "build:css": "npx @tailwindcss/cli -i ./src/index.css -o ./src/index.css",
     "lint": "eslint .",
     "preview": "vite preview"
   },
