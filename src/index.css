@@ -699,6 +699,9 @@
   .justify-between {
     justify-content: space-between;
   }
+  .space-x-8{
+    gap: 8px;
+  }
   .justify-center {
     justify-content: center;
   }
