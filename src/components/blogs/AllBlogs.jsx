@@ -1,56 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import BlogCard from './BlogCard';
-import { defaultBlogs } from './DefaultBlogs';
-
+import React, { useState, useEffect } from "react";
+import BlogCard from "./BlogCard";
+import { defaultBlogs } from "./DefaultBlogs";
 
 const AllBlogs = () => {
   const [allBlogs, setAllBlogs] = useState([]);
   const [filteredBlogs, setFilteredBlogs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     // Get user blogs from localStorage
-    const userBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
-    
+    const userBlogs = JSON.parse(localStorage.getItem("blogs") || "[]");
+
     // Combine with default blogs
     const combined = [...userBlogs, ...defaultBlogs];
     setAllBlogs(combined);
     setFilteredBlogs(combined);
-    
+
     // Extract unique categories
     const uniqueCategories = Array.from(
-      new Set(combined.map(blog => blog.category).filter(Boolean))
+      new Set(combined.map((blog) => blog.category).filter(Boolean))
     );
     setCategories(uniqueCategories);
   }, []);
 
   useEffect(() => {
     let filtered = [...allBlogs];
-    
+
     // Filter by search term
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(blog => 
-        blog.title.toLowerCase().includes(term) || 
-        blog.description.toLowerCase().includes(term) ||
-        (blog.tags && blog.tags.some(tag => tag.toLowerCase().includes(term)))
+      filtered = filtered.filter(
+        (blog) =>
+          blog.title.toLowerCase().includes(term) ||
+          blog.description.toLowerCase().includes(term) ||
+          (blog.tags &&
+            blog.tags.some((tag) => tag.toLowerCase().includes(term)))
       );
     }
-    
+
     // Filter by category
     if (selectedCategory) {
-      filtered = filtered.filter(blog => blog.category === selectedCategory);
+      filtered = filtered.filter((blog) => blog.category === selectedCategory);
     }
-    
+
     setFilteredBlogs(filtered);
   }, [searchTerm, selectedCategory, allBlogs]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Explore All Blogs</h1>
-      
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">
+        Explore All Blogs
+      </h1>
+
       <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
         <div className="relative flex-1">
           <input
@@ -75,29 +78,44 @@ const AllBlogs = () => {
             />
           </svg>
         </div>
-        
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Categories</option>
-          {categories.map(category => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
+
+        <div className="relative">
+          <select
+            id="categoryFilter"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer pr-10"
+            aria-label="Filter by category"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+            <svg
+              className="w-4 h-4 fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
+        </div>
       </div>
-      
+
       {filteredBlogs.length === 0 ? (
         <div className="bg-gray-100 rounded-lg p-8 text-center">
           <h2 className="text-xl text-gray-700">No blogs found</h2>
-          <p className="text-gray-600 mt-2">Try different search terms or filters</p>
+          <p className="text-gray-600 mt-2">
+            Try different search terms or filters
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredBlogs.map(blog => (
+          {filteredBlogs.map((blog) => (
             <BlogCard key={blog.id} blog={blog} />
           ))}
         </div>
