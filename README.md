@@ -1,8 +1,21 @@
-# React + Vite
+## Environment Setup
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project uses environment variables to store sensitive information like API keys.
 
-Currently, two official plugins are available:
+### Setup Instructions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Copy `.env.template` to `.env.local`
+2. Replace the placeholder values with your actual API keys
+3. Never commit `.env.local` to the repository
+
+```bash
+# Example .env.local file
+REACT_APP_ABSTRACT_API_KEY=your_actual_api_key_here
+```
+
+### Required APIs
+
+- **Abstract API** - For email validation
+  - Sign up at [abstractapi.com](https://www.abstractapi.com/)
+  - Create an API key for the Email Validation API
+  - Add your key to the `.env.local` file
