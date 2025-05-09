@@ -10,7 +10,7 @@ This project uses environment variables to store sensitive information like API 
 
 ```bash
 # Example .env.local file
-REACT_APP_ABSTRACT_API_KEY=your_actual_api_key_here
+VITE_REACT_APP_ABSTRACT_API_KEY=your_actual_api_key_here
 ```
 
 ### Required APIs
