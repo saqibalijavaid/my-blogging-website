@@ -1,3 +1,42 @@
+// import React, { useState } from "react";
+// import { Link, useNavigate } from "react-router-dom";
+
+// const Signin = ({ handleLogin }) => {
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [isLoading, setIsLoading] = useState(false);
+//   const navigate = useNavigate();
+
+//   const handleSignin = (e) => {
+//     e.preventDefault();
+//     setIsLoading(true);
+
+//     // Get users from localStorage
+//     const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+//     // Find matching user
+//     const user = storedUsers.find(
+//       (u) => u.email === email && u.password === password
+//     );
+
+//     // Simulate network delay for better UX
+//     setTimeout(() => {
+//       setIsLoading(false);
+//       if (user) {
+//         // Save logged-in user data
+//         localStorage.setItem("currentUser", JSON.stringify(user));
+
+//         handleLogin(user); // Update App state
+//         alert("Signin successful!");
+
+//         // Redirect user to All Blogs page after successful login
+//         navigate("/blogs");
+//       } else {
+//         alert("Invalid email or password! Please try again.");
+//       }
+//     }, 800);
+//   };
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -7,34 +46,40 @@ const Signin = ({ handleLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignin = (e) => {
+  const handleSignin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("Signin attempt started...");
 
-    // Get users from localStorage
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      console.log("Preparing to send request with email:", email, "password:", password);
+      const response = await fetch("http://localhost:5000/api/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Find matching user
-    const user = storedUsers.find(
-      (u) => u.email === email && u.password === password
-    );
+      console.log("Response received:", response);
 
-    // Simulate network delay for better UX
-    setTimeout(() => {
+      const data = await response.json();
       setIsLoading(false);
-      if (user) {
-        // Save logged-in user data
-        localStorage.setItem("currentUser", JSON.stringify(user));
 
-        handleLogin(user); // Update App state
-        alert("Signin successful!");
-
-        // Redirect user to All Blogs page after successful login
+      if (response.ok) {
+        console.log("Signin successful:", data);
+        handleLogin(data.user); // Pass user data to parent (App or context)
+        alert("✅ Signin successful!");
         navigate("/blogs");
       } else {
-        alert("Invalid email or password! Please try again.");
+        console.log("Signin failed:", data.message);
+        alert(data.message || "❌ Invalid email or password");
       }
-    }, 800);
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Signin error:", error);
+      alert("❌ Something went wrong. Please try again later.");
+    }
   };
 
   const [showPassword, setShowPassword] = useState(false);
