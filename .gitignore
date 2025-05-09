@@ -1,3 +1,16 @@
+# Backend Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# Frontend
 # Logs
 logs
 *.log
@@ -7,15 +20,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+dist-ssr/
+build/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -32,3 +52,13 @@ dist-ssr
 .env.test.local
 .env.production
 .env.production.local
+
+# Database
+*.sqlite
+*.db
+
+# Temporary files
+.tmp/
+.temp/
+tmp/
+temp/
