@@ -15,13 +15,6 @@ const EmailInput = ({ email, setEmail, onValidationChange }) => {
 
       try {
 
-        // Replace YOUR_API_KEY with your actual Abstract API key
-        // const response = await fetch(
-        //   `https://emailvalidation.abstractapi.com/v1/?api_key=d23e08543c704a2f810b33777177ccf6&email=${encodeURIComponent(
-        //     emailToValidate
-        //   )}`
-        // );
-
         // Use environment variable instead of hardcoded API key
         // const apiKey = process.env.REACT_APP_ABSTRACT_API_KEY;
         const apiKey = import.meta.env.VITE_ABSTRACT_API_KEY;

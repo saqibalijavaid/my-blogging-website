@@ -3,6 +3,10 @@ from models.user import create_user  # Importing the create_user function from t
 from models.user import find_user_by_email  # Importing the find_user_by_email function from the user model
 from datetime import datetime
 import logging
+from werkzeug.security import generate_password_hash, check_password_hash  # ✅ ADDED
+from flask_jwt_extended import create_access_token, set_access_cookies
+from flask import make_response
+
 
 # Configure logging to print to console
 logging.basicConfig(level=logging.DEBUG)
@@ -14,6 +18,7 @@ auth_routes = Blueprint('auth_routes', __name__)
 @auth_routes.route('/signup', methods=['POST'])
 def signup():
     try:
+        print("Received signup request")  # Log the request
         # Get data from the request body (sent as JSON)
         data = request.get_json()
         name = data.get('name')
@@ -22,8 +27,11 @@ def signup():
         profile_picture = data.get('profilePicture')
         has_custom_picture = data.get('hasCustomPicture')
 
+        # ✅ Hash the password before saving
+        hashed_password = generate_password_hash(password)     
+
         # Attempt to create a new user using a helper function
-        result = create_user(name, email, password, profile_picture, has_custom_picture)
+        result = create_user(name, email, hashed_password, profile_picture, has_custom_picture)
         
         # If user creation is successful
         if result:
@@ -44,6 +52,7 @@ def signin():
         # Extract credentials from the request body
         data = request.get_json()
         print(f"Received data: {data}")  # Log parsed data
+
         email = data.get('email')
         password = data.get('password')
 
@@ -54,12 +63,15 @@ def signin():
         if not user:
             return jsonify({"message": "❌ No user found with this email."}), 404
 
-        # Compare provided password with stored password
-        if user['password'] != password:
+        # ✅ Use hashed password check
+        if not check_password_hash(user['password'], password):
             return jsonify({"message": "❌ Incorrect password."}), 401
 
-        # If sign-in is successful, return user data
-        return jsonify({
+        # ✅ Create JWT access token
+        access_token = create_access_token(identity=user['id'])
+
+        # ✅ Prepare response and set JWT in HttpOnly cookie
+        response = make_response(jsonify({
             "message": "✅ Sign-in successful!",
             "user": {
                 "id": user['id'],
@@ -68,7 +80,10 @@ def signin():
                 "profile_picture": user['profile_picture'],
                 "has_custom_picture": user['has_custom_picture']
             }
-        }), 200
+        }))
+        set_access_cookies(response, access_token)
+
+        return response, 200
 
     except Exception as e:
         # Handle any server-side error

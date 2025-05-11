@@ -59,6 +59,7 @@ const Signin = ({ handleLogin }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include",  // ✅ very important
       });
 
       console.log("Response received:", response);
