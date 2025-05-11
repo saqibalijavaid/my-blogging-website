@@ -1,4 +1,4 @@
-## Environment Setup
+## Environment Setup 
 
 This project uses environment variables to store sensitive information like API keys.
 
