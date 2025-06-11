@@ -52,14 +52,19 @@ const Signin = ({ handleLogin }) => {
     console.log("Signin attempt started...");
 
     try {
-      console.log("Preparing to send request with email:", email, "password:", password);
+      console.log(
+        "Preparing to send request with email:",
+        email,
+        "password:",
+        password
+      );
       const response = await fetch("http://localhost:5000/api/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // ✅ Important for sending/receiving session cookie
         body: JSON.stringify({ email, password }),
-        credentials: "include",  // ✅ very important
       });
 
       console.log("Response received:", response);

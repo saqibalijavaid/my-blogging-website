@@ -51,12 +51,33 @@ const App = () => {
     localStorage.setItem("loggedInUser", JSON.stringify(user));
   };
 
-  // Function to handle logout
-  const handleLogout = () => {
-    setLoggedInUser(null);
-    setIsLoggedIn(false);
-    localStorage.removeItem("loggedInUser");
-  };
+const handleLogout = async () => {
+  try {
+    // 🔐 Request backend to clear session
+    const response = await fetch("http://localhost:5000/api/signout", {
+      method: "POST",
+      credentials: "include", // Include session cookies
+    });
+
+    const data = await response.json();
+    console.log("✅ Logout response:", data);
+
+    if (response.ok) {
+      // Clear frontend state only
+      setLoggedInUser(null);
+      setIsLoggedIn(false);
+
+      alert(data.message || "Logged out successfully!");
+    } else {
+      console.error("❌ Logout failed:", data.message);
+      alert(data.message || "Logout failed.");
+    }
+  } catch (error) {
+    console.error("🚨 Error during logout:", error);
+    alert("Something went wrong during logout.");
+  }
+};
+
 
   return (
     <Router>
