@@ -1,25 +1,19 @@
-from flask import Blueprint, request, jsonify
-from models.user import create_user  # Importing the create_user function from the user model
-from models.user import find_user_by_email  # Importing the find_user_by_email function from the user model
+from flask import Blueprint, request, jsonify, session, make_response
+from models.user import create_user, find_user_by_email
 from datetime import datetime
 import logging
-from werkzeug.security import generate_password_hash, check_password_hash  # ✅ ADDED
-from flask_jwt_extended import create_access_token, set_access_cookies
-from flask import make_response
+from werkzeug.security import generate_password_hash, check_password_hash
 
-
-# Configure logging to print to console
+# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Creating a Blueprint for authentication-related routes
+# Create Blueprint
 auth_routes = Blueprint('auth_routes', __name__)
 
 # -------------------- SIGNUP ROUTE --------------------
 @auth_routes.route('/signup', methods=['POST'])
 def signup():
     try:
-        print("Received signup request")  # Log the request
-        # Get data from the request body (sent as JSON)
         data = request.get_json()
         name = data.get('name')
         email = data.get('email')
@@ -27,21 +21,17 @@ def signup():
         profile_picture = data.get('profilePicture')
         has_custom_picture = data.get('hasCustomPicture')
 
-        # ✅ Hash the password before saving
-        hashed_password = generate_password_hash(password)     
+        # Hash password before saving
+        # hashed_password = generate_password_hash(password)
 
-        # Attempt to create a new user using a helper function
-        result = create_user(name, email, hashed_password, profile_picture, has_custom_picture)
-        
-        # If user creation is successful
+        result = create_user(name, email, password, profile_picture, has_custom_picture)
+
         if result:
             return jsonify({"message": "✅ User created successfully!"}), 201
         else:
-            # If user already exists
             return jsonify({"message": "❌ User already exists with this email."}), 409
 
     except Exception as e:
-        # Handle any server-side error
         print("Error during signup:", e)
         return jsonify({"message": f"Error: {e}"}), 500
 
@@ -49,29 +39,28 @@ def signup():
 @auth_routes.route('/signin', methods=['POST'])
 def signin():
     try:
-        # Extract credentials from the request body
         data = request.get_json()
-        print(f"Received data: {data}")  # Log parsed data
-
         email = data.get('email')
         password = data.get('password')
 
-        # Fetch user details from the database by email
         user = find_user_by_email(email)
 
-        # If no user is found with the given email
         if not user:
             return jsonify({"message": "❌ No user found with this email."}), 404
 
-        # ✅ Use hashed password check
-        if not check_password_hash(user['password'], password):
+        # Check hashed password
+        # if not check_password_hash(user['password'], password):
+        if user['password'] != password:
             return jsonify({"message": "❌ Incorrect password."}), 401
 
-        # ✅ Create JWT access token
-        access_token = create_access_token(identity=user['id'])
+        # Set session data
+        session['user_id'] = user['id']
+        session['user_name'] = user['name']
+        session['user_email'] = user['email']
+        # session['profile_picture'] = user['profile_picture']
+        # session['has_custom_picture'] = user['has_custom_picture']
 
-        # ✅ Prepare response and set JWT in HttpOnly cookie
-        response = make_response(jsonify({
+        return jsonify({
             "message": "✅ Sign-in successful!",
             "user": {
                 "id": user['id'],
@@ -80,12 +69,14 @@ def signin():
                 "profile_picture": user['profile_picture'],
                 "has_custom_picture": user['has_custom_picture']
             }
-        }))
-        set_access_cookies(response, access_token)
-
-        return response, 200
+        }), 200
 
     except Exception as e:
-        # Handle any server-side error
         print("Error during signin:", e)
         return jsonify({"message": f"Error: {e}"}), 500
+
+# -------------------- SIGNOUT ROUTE --------------------
+@auth_routes.route('/signout', methods=['POST'])
+def signout():
+    session.clear()
+    return jsonify({"message": "👋 Logged out successfully!"}), 200

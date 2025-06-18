@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import BlogForm from "./BlogForm"; // import your new component
+import BlogForm from "./BlogForm";
 
 const CreateBlog = () => {
   const navigate = useNavigate();
@@ -11,12 +11,32 @@ const CreateBlog = () => {
     category: "",
     tags: "",
   });
+  const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/posts/categories", {
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Category fetch error:", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
@@ -35,37 +55,47 @@ const CreateBlog = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.title.trim() || !formData.content.trim()) {
       setError("Title and content are required!");
       return;
     }
 
-    const existingBlogs = JSON.parse(localStorage.getItem("blogs") || "[]");
+    try {
+      const res = await fetch("http://localhost:5000/api/posts/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          image: formData.image,
+          category: parseInt(formData.category), // ensure it's a number
+          tags: formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag),
+        }),
+      });
 
-    const newBlog = {
-      ...formData,
-      id: Date.now().toString(),
-      userId: localStorage.getItem("currentUser") || "anonymous",
-      createdAt: new Date().toISOString(),
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag),
-      description: formData.content.substring(0, 150) + "...",
-    };
+      const data = await res.json();
 
-    localStorage.setItem("blogs", JSON.stringify([newBlog, ...existingBlogs]));
+      if (!res.ok) throw new Error(data.message || "Failed to create post");
 
-    navigate("/blogs");
+      navigate("/blogs");
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
-        Create New Blog
-      </h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Create New Blog</h1>
 
       <BlogForm
         formData={formData}
@@ -73,287 +103,10 @@ const CreateBlog = () => {
         handleImageChange={handleImageChange}
         handleSubmit={handleSubmit}
         error={error}
+        categories={categories}
       />
     </div>
   );
 };
 
 export default CreateBlog;
-
-// import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-
-// const CreateBlog = () => {
-//   const navigate = useNavigate();
-//   const [formData, setFormData] = useState({
-//     title: "",
-//     content: "",
-//     image: "",
-//     category: "",
-//     tags: "",
-//   });
-//   const [error, setError] = useState("");
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prevData) => ({
-//       ...prevData,
-//       [name]: value,
-//     }));
-//   };
-
-//   const handleImageChange = (e) => {
-//     const file = e.target.files[0];
-//     if (file) {
-//       const reader = new FileReader();
-//       reader.onloadend = () => {
-//         setFormData((prevData) => ({
-//           ...prevData,
-//           image: reader.result,
-//         }));
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     if (!formData.title.trim() || !formData.content.trim()) {
-//       setError("Title and content are required!");
-//       return;
-//     }
-
-//     console.log("Current User:", localStorage.getItem("currentUser"));
-
-//     // Get existing blogs from localStorage
-//     const existingBlogs = JSON.parse(localStorage.getItem("blogs") || "[]");
-
-//     // Create new blog with generated ID and current user
-//     const newBlog = {
-//       ...formData,
-//       id: Date.now().toString(),
-//       userId: localStorage.getItem("currentUser") || "anonymous",
-//       createdAt: new Date().toISOString(),
-//       tags: formData.tags
-//         .split(",")
-//         .map((tag) => tag.trim())
-//         .filter((tag) => tag),
-//       description: formData.content.substring(0, 150) + "...",
-//     };
-
-//     // Save updated blogs array
-//     localStorage.setItem("blogs", JSON.stringify([newBlog, ...existingBlogs]));
-
-//     // Redirect to all blogs page
-//     navigate("/blogs");
-//   };
-
-//   return (
-//     <div className="max-w-2xl mx-auto p-6">
-//       <h1 className="text-3xl font-bold text-gray-800 mb-6">Create New Blog</h1>
-
-//       {error && (
-//         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-//           <p>{error}</p>
-//         </div>
-//       )}
-
-//       <form onSubmit={handleSubmit} className="space-y-6">
-//         {/* Title */}
-//         <div>
-//           <label className="block text-gray-700 mb-2 font-bold">Title*</label>
-//           <input
-//             type="text"
-//             name="title"
-//             value={formData.title}
-//             onChange={handleChange}
-//             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//             placeholder="Enter blog title"
-//           />
-//         </div>
-
-//         {/* Category */}
-//         <div>
-//           <label
-//             htmlFor="category"
-//             className="block text-gray-700 mb-2 font-bold"
-//           >
-//             Category
-//           </label>
-//           <div className="relative">
-//             <select
-//               id="category"
-//               name="category"
-//               value={formData.category}
-//               onChange={handleChange}
-//               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer pr-10"
-//               aria-label="Select a blog category"
-//             >
-//               <option value="" disabled>
-//                 Select a category
-//               </option>
-//               <option value="Technology">Technology</option>
-//               <option value="Health">Health</option>
-//               <option value="Travel">Travel</option>
-//               <option value="Food">Food</option>
-//               <option value="Lifestyle">Lifestyle</option>
-//             </select>
-//             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
-//               <svg
-//                 className="w-4 h-4 fill-current"
-//                 xmlns="http://www.w3.org/2000/svg"
-//                 viewBox="0 0 20 20"
-//               >
-//                 <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-//               </svg>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Tags (comma separated) */}
-//         <div>
-//           <label className="block text-gray-700 mb-2 font-bold">
-//             Tags (comma separated)
-//           </label>
-//           <input
-//             type="text"
-//             name="tags"
-//             value={formData.tags}
-//             onChange={handleChange}
-//             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//             placeholder="e.g. react, programming, web development"
-//           />
-//         </div>
-
-//         {/* Image Upload */}
-//         <div className="mb-6">
-//           <label className="block text-gray-700 mb-2 font-bold">
-//             Image Upload
-//           </label>
-//           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 transition-all bg-gray-50">
-//             {!formData.image ? (
-//               <div className="flex flex-col items-center justify-center space-y-3">
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-12 w-12 text-gray-400"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-//                   />
-//                 </svg>
-//                 <p className="text-sm text-gray-500">
-//                   Select an image:{" "}
-//                   <label className="text-purple-600 font-medium cursor-pointer inline-block hover:underline">
-//                     browse
-//                     <input
-//                       type="file"
-//                       accept="image/*"
-//                       onChange={handleImageChange}
-//                       className="hidden"
-//                     />
-//                   </label>
-//                 </p>
-//                 <p className="text-xs text-gray-400">
-//                   PNG, JPG, GIF up to 10MB
-//                 </p>
-//                 <p className="text-xs italic text-gray-500 mt-2">
-//                   For best results, use a horizontal (landscape) image
-//                 </p>
-//               </div>
-//             ) : (
-//               <div className="relative w-full">
-//                 <img
-//                   src={formData.image}
-//                   alt="Preview"
-//                   className="w-full max-h-64 object-cover rounded-md"
-//                 />
-//                 <button
-//                   onClick={() => setFormData({ ...formData, image: null })}
-//                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100 cursor-pointer"
-//                   type="button"
-//                   aria-label="Remove image"
-//                 >
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-5 w-5 text-gray-600"
-//                     fill="none"
-//                     viewBox="0 0 24 24"
-//                     stroke="currentColor"
-//                   >
-//                     <path
-//                       strokeLinecap="round"
-//                       strokeLinejoin="round"
-//                       strokeWidth={2}
-//                       d="M6 18L18 6M6 6l12 12"
-//                     />
-//                   </svg>
-//                 </button>
-//               </div>
-//             )}
-//           </div>
-//           {formData.image && (
-//             <div className="flex items-center mt-2">
-//               <svg
-//                 xmlns="http://www.w3.org/2000/svg"
-//                 className="h-4 w-4 text-gray-500 mr-1"
-//                 fill="none"
-//                 viewBox="0 0 24 24"
-//                 stroke="currentColor"
-//               >
-//                 <path
-//                   strokeLinecap="round"
-//                   strokeLinejoin="round"
-//                   strokeWidth={2}
-//                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-//                 />
-//               </svg>
-//               <p className="text-sm text-gray-500">
-//                 Click{" "}
-//                 <label className="text-purple-600 cursor-pointer hover:underline">
-//                   here
-//                   <input
-//                     type="file"
-//                     accept="image/*"
-//                     onChange={handleImageChange}
-//                     className="hidden"
-//                   />
-//                 </label>{" "}
-//                 to change image or use the X button to remove it
-//               </p>
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Content */}
-//         <div>
-//           <label className="block text-gray-700 mb-2 font-bold">
-//             Content*
-//           </label>
-//           <textarea
-//             name="content"
-//             value={formData.content}
-//             onChange={handleChange}
-//             rows="10"
-//             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//             placeholder="Write your blog content here"
-//           ></textarea>
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition cursor-pointer"
-//         >
-//           Publish Blog
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default CreateBlog;

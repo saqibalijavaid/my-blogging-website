@@ -6,6 +6,7 @@ const BlogForm = ({
   handleImageChange,
   handleSubmit,
   error,
+  categories,
   buttonText = "Publish Blog",
 }) => {
   return (
@@ -32,7 +33,10 @@ const BlogForm = ({
 
         {/* Category */}
         <div>
-          <label htmlFor="category" className="block text-gray-700 mb-2 font-bold">
+          <label
+            htmlFor="category"
+            className="block text-gray-700 mb-2 font-bold"
+          >
             Category
           </label>
           <div className="relative">
@@ -47,11 +51,11 @@ const BlogForm = ({
               <option value="" disabled>
                 Select a category
               </option>
-              <option value="Technology">Technology</option>
-              <option value="Health">Health</option>
-              <option value="Travel">Travel</option>
-              <option value="Food">Food</option>
-              <option value="Lifestyle">Lifestyle</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
               <svg
@@ -79,7 +83,6 @@ const BlogForm = ({
             placeholder="e.g. react, programming, web development"
           />
         </div>
-
         {/* Image Upload */}
         <div className="mb-6">
           <label className="block text-gray-700 mb-2 font-bold">
@@ -114,7 +117,9 @@ const BlogForm = ({
                     />
                   </label>
                 </p>
-                <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>
+                <p className="text-xs text-gray-400">
+                  PNG, JPG, GIF up to 10MB
+                </p>
                 <p className="text-xs italic text-gray-500 mt-2">
                   For best results, use a horizontal (landscape) image
                 </p>
@@ -127,7 +132,9 @@ const BlogForm = ({
                   className="w-full max-h-64 object-cover rounded-md"
                 />
                 <button
-                  onClick={() => handleChange({ target: { name: "image", value: null } })}
+                  onClick={() =>
+                    handleChange({ target: { name: "image", value: null } })
+                  }
                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100 cursor-pointer"
                   type="button"
                   aria-label="Remove image"
@@ -151,7 +158,6 @@ const BlogForm = ({
             )}
           </div>
         </div>
-
         {/* Content */}
         <div>
           <label className="block text-gray-700 mb-2 font-bold">Content*</label>
@@ -164,7 +170,6 @@ const BlogForm = ({
             placeholder="Write your blog content here"
           ></textarea>
         </div>
-
         <button
           type="submit"
           className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition cursor-pointer"

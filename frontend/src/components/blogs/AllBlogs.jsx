@@ -1,52 +1,75 @@
 import React, { useState, useEffect } from "react";
 import BlogCard from "./BlogCard";
-import { defaultBlogs } from "./DefaultBlogs";
 
 const AllBlogs = () => {
-  const [allBlogs, setAllBlogs] = useState([]);
   const [filteredBlogs, setFilteredBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
 
+  // Fetch all blogs
   useEffect(() => {
-    // Get user blogs from localStorage
-    const userBlogs = JSON.parse(localStorage.getItem("blogs") || "[]");
+    const fetchBlogs = async () => {
+      try {
+        let url = "http://localhost:5000/api/posts";
+        const queryParams = [];
 
-    // Combine with default blogs
-    const combined = [...userBlogs, ...defaultBlogs];
-    setAllBlogs(combined);
-    setFilteredBlogs(combined);
+        if (searchTerm.trim()) {
+          queryParams.push(`search=${encodeURIComponent(searchTerm)}`);
+        }
 
-    // Extract unique categories
-    const uniqueCategories = Array.from(
-      new Set(combined.map((blog) => blog.category).filter(Boolean))
-    );
-    setCategories(uniqueCategories);
+        if (selectedCategory) {
+          queryParams.push(
+            `category_id=${encodeURIComponent(selectedCategory)}`
+          );
+        }
+
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join("&")}`;
+        }
+
+        const res = await fetch(url, {
+          credentials: "include", // required to send cookies/session with request
+        });
+        const data = await res.json();
+        // setAllBlogs(data);
+        setFilteredBlogs(data);
+      } catch (err) {
+        console.error("Error fetching blogs:", err);
+      }
+    };
+
+    fetchBlogs();
+  }, [searchTerm, selectedCategory]);
+
+  // Fetch all categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/posts/categories", {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
+        const data = await res.json();
+
+        // Check if it's already an array of objects
+        if (Array.isArray(data) && typeof data[0] === "object") {
+          setCategories(data);
+        } else {
+          console.warn("Unexpected data format:", data);
+          setCategories([]);
+        }
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
+    fetchCategories();
   }, []);
-
-  useEffect(() => {
-    let filtered = [...allBlogs];
-
-    // Filter by search term
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (blog) =>
-          blog.title.toLowerCase().includes(term) ||
-          blog.description.toLowerCase().includes(term) ||
-          (blog.tags &&
-            blog.tags.some((tag) => tag.toLowerCase().includes(term)))
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory) {
-      filtered = filtered.filter((blog) => blog.category === selectedCategory);
-    }
-
-    setFilteredBlogs(filtered);
-  }, [searchTerm, selectedCategory, allBlogs]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -89,11 +112,12 @@ const AllBlogs = () => {
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+              <option key={category.id} value={category.id}>
+                {category.name}
               </option>
             ))}
           </select>
+
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
             <svg
               className="w-4 h-4 fill-current"
@@ -115,9 +139,31 @@ const AllBlogs = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredBlogs.map((blog) => (
+          {/* {filteredBlogs.map((blog) => (
             <BlogCard key={blog.id} blog={blog} />
-          ))}
+          ))} */}
+
+          {filteredBlogs.map((blog) => {
+            let tagsArray = [];
+
+            if (Array.isArray(blog.tags)) {
+              tagsArray = blog.tags;
+            } else if (typeof blog.tags === "string") {
+              tagsArray = blog.tags.split(",").map((tag) => tag.trim());
+            }
+
+            return (
+              <BlogCard
+                key={blog.id}
+                blog={{
+                  ...blog,
+                  tags: tagsArray,
+                  category: blog.category_name || "", // normalize to expected key
+                  description: blog.content?.slice(0, 180) + "...", // optional fallback
+                }}
+              />
+            );
+          })}
         </div>
       )}
     </div>

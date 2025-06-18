@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./App.css"
+import "./App.css";
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,62 +22,68 @@ import EditBlog from "./components/blogs/EditBlog";
 import DeleteBlog from "./components/blogs/DeleteBlog";
 
 const App = () => {
-  const [users, setUsers] = useState([]); // Store registered users
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
-  const [loggedInUser, setLoggedInUser] = useState(null); // Store logged-in user
-  const [userBlogs, setUserBlogs] = useState([]); // Store user-created blogs
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [userBlogs, setUserBlogs] = useState([]);
 
-  // Load stored data on first render
+  // 🔐 Check if user is already logged in (session persistence)
   useEffect(() => {
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    setUsers(storedUsers);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/user/me", {
+          method: "GET",
+          credentials: "include",
+        });
 
-    const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (storedUser) {
-      setLoggedInUser(storedUser);
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
+        if (res.ok) {
+          const data = await res.json();
+          setLoggedInUser(data);
+          setIsLoggedIn(true);
+          console.log("✅ Logged-in user persisted:", data);
+        } else {
+          setIsLoggedIn(false);
+          setLoggedInUser(null);
+          console.log("⚠️ No active session");
+        }
+      } catch (err) {
+        console.error("🚨 Error checking session:", err);
+        setIsLoggedIn(false);
+        setLoggedInUser(null);
+      }
+    };
 
-    const storedBlogs = JSON.parse(localStorage.getItem("userBlogs")) || [];
-    setUserBlogs(storedBlogs);
+    fetchUser();
   }, []);
 
-  // Function to handle login
   const handleLogin = (user) => {
     setLoggedInUser(user);
     setIsLoggedIn(true);
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
   };
 
-const handleLogout = async () => {
-  try {
-    // 🔐 Request backend to clear session
-    const response = await fetch("http://localhost:5000/api/signout", {
-      method: "POST",
-      credentials: "include", // Include session cookies
-    });
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/signout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    const data = await response.json();
-    console.log("✅ Logout response:", data);
+      const data = await response.json();
+      console.log("✅ Logout response:", data);
 
-    if (response.ok) {
-      // Clear frontend state only
-      setLoggedInUser(null);
-      setIsLoggedIn(false);
-
-      alert(data.message || "Logged out successfully!");
-    } else {
-      console.error("❌ Logout failed:", data.message);
-      alert(data.message || "Logout failed.");
+      if (response.ok) {
+        setLoggedInUser(null);
+        setIsLoggedIn(false);
+        alert(data.message || "Logged out successfully!");
+      } else {
+        console.error("❌ Logout failed:", data.message);
+        alert(data.message || "Logout failed.");
+      }
+    } catch (error) {
+      console.error("🚨 Error during logout:", error);
+      alert("Something went wrong during logout.");
     }
-  } catch (error) {
-    console.error("🚨 Error during logout:", error);
-    alert("Something went wrong during logout.");
-  }
-};
-
+  };
 
   return (
     <Router>
@@ -90,17 +96,14 @@ const handleLogout = async () => {
       <Layout>
         <Routes>
           {/* Public Routes */}
-          {/* <Route path="/" element={<Home />} /> */}
           <Route path="/" element={<Home isLoggedIn={isLoggedIn} />} />
           <Route path="/blogs" element={<AllBlogs />} />
           <Route path="/blogs/:id" element={<BlogDetails />} />
-          <Route
-            path="/signin"
-            element={<Signin handleLogin={handleLogin} />}
-          />
+          <Route path="/signin" element={<Signin handleLogin={handleLogin} />} />
           <Route path="/signup" element={<Signup setUsers={setUsers} />} />
-          <Route path="/our-story" element={<OurStory />} /> // ✅ Add OurStory
-          {/* Protected Routes (Require Login) */}
+          <Route path="/our-story" element={<OurStory />} />
+
+          {/* Protected Routes */}
           <Route
             path="/user-details"
             element={
@@ -151,7 +154,8 @@ const handleLogout = async () => {
               )
             }
           />
-          {/* Redirect Unknown Routes to Home */}
+
+          {/* Catch-All */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>

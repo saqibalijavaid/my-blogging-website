@@ -12,23 +12,51 @@ const UserDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
 
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/user/me", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (res.ok) return await res.json();
+      else throw new Error("Failed to fetch user");
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const updateUserProfile = async (updatedData) => {
+    try {
+      const res = await fetch("http://localhost:5000/api/user/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(updatedData),
+      });
+      const data = await res.json();
+      return { success: res.ok, message: data.message };
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "An error occurred" };
+    }
+  };
+
   useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (!loggedInUser) {
-      navigate("/signin");
-      return;
-    }
+    const loadUser = async () => {
+      const user = await fetchCurrentUser();
+      if (!user) {
+        navigate("/signin");
+        return;
+      }
 
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const currentUser = storedUsers.find((u) => u.email === loggedInUser.email);
+      setUser(user);
+      setName(user.name);
+      setEmail(user.email);
+      setProfilePicture(user.profile_picture || "");
+    };
 
-    if (currentUser) {
-      setUser(currentUser);
-      setName(currentUser.name);
-      setEmail(currentUser.email);
-      setProfilePicture(currentUser.profilePicture || "");
-      setPassword(currentUser.password);
-    }
+    loadUser();
   }, [navigate]);
 
   const validatePassword = (pwd) => {
@@ -40,69 +68,43 @@ const UserDetails = () => {
     return true;
   };
 
-  const handleUpdateProfile = (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
-    if (!validatePassword(password)) {
-      return;
-    }
+    if (!validatePassword(password)) return;
 
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const nameChanged = name !== user.name;
-    
-    // Determine the final profile picture
     let finalProfilePicture = profilePicture;
-    let hasCustomPicture = user.hasCustomPicture || false;
+    let hasCustomPicture = user.has_custom_picture || false;
+    const nameChanged = name !== user.name;
 
     if (!profilePicture) {
-      // If picture was cleared
       finalProfilePicture = generateAvatarUrl(name);
       hasCustomPicture = false;
-    } else if (nameChanged && !user.hasCustomPicture) {
-      // If name changed and no custom picture exists
+    } else if (nameChanged && !user.has_custom_picture) {
       finalProfilePicture = generateAvatarUrl(name);
-    } else if (profilePicture !== user.profilePicture) {
-      // If a new picture was uploaded
+    } else if (profilePicture !== user.profile_picture) {
       hasCustomPicture = true;
     }
 
-    // Update users array
-    const updatedUsers = storedUsers.map((u) =>
-      u.email === user.email
-        ? { 
-            ...u, 
-            name, 
-            password, 
-            profilePicture: finalProfilePicture,
-            hasCustomPicture
-          }
-        : u
-    );
-
-    // Update loggedInUser
-    const updatedLoggedInUser = {
-      ...JSON.parse(localStorage.getItem("loggedInUser")),
+    const updatedData = {
       name,
-      profilePicture: finalProfilePicture
+      profile_picture: finalProfilePicture,
+      has_custom_picture: hasCustomPicture,
+      // password,
     };
 
-    // Save to localStorage
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    localStorage.setItem("loggedInUser", JSON.stringify(updatedLoggedInUser));
-    
-    // Trigger update in other components
-    localStorage.setItem("profileUpdate", Date.now().toString());
+    const result = await updateUserProfile(updatedData);
+    alert(result.message);
+    if (result.success) {
+      setUser({
+        ...user,
+        name,
+        profile_picture: finalProfilePicture,
+        has_custom_picture: hasCustomPicture,
+      });
 
-    // Update state
-    setUser({ 
-      ...user, 
-      name, 
-      password, 
-      profilePicture: finalProfilePicture,
-      hasCustomPicture
-    });
-
-    setIsEditing(false);
+      setIsEditing(false);
+    }
   };
 
   const handleImageChange = (e) => {
